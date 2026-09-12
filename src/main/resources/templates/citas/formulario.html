@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Registrar Cita — Citas Médicas</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div class="topbar-icon">+</div>
+        <div>
+            <div class="brand-mark">Citas Médicas</div>
+            <div class="brand-sub">Sistema de Gestión Hospitalaria</div>
+        </div>
+    </div>
+    <a th:href="@{/citas}" class="btn btn-ghost">Ver todas las citas</a>
+</header>
+
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h1>Registrar cita</h1>
+            <p>Completa los datos para agendar una nueva cita médica.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <p class="alert alert-danger" th:if="${errorDisponibilidad}" th:text="${errorDisponibilidad}"></p>
+
+        <form th:action="@{/citas}" th:object="${citaForm}" method="post" class="form-grid">
+
+            <div class="field">
+                <label>Paciente</label>
+                <select th:field="*{pacienteId}">
+                    <option value="" disabled selected>Selecciona un paciente</option>
+                    <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nombreCompleto}"></option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Médico</label>
+                <select th:field="*{medicoId}">
+                    <option value="" disabled selected>Selecciona un médico</option>
+                    <option th:each="m : ${medicos}" th:value="${m.id}" th:text="${m.nombreCompleto}"></option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Especialidad</label>
+                <input type="text" th:field="*{especialidad}" placeholder="Ej. Medicina General"/>
+            </div>
+
+            <div class="field">
+                <label>Consultorio</label>
+                <input type="text" th:field="*{consultorio}" placeholder="Ej. C-205"/>
+            </div>
+
+            <div class="field">
+                <label>Fecha</label>
+                <input type="date" th:field="*{fecha}"/>
+            </div>
+
+            <div class="field">
+                <label>Hora de inicio</label>
+                <input type="time" th:field="*{horaInicio}"/>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Guardar cita</button>
+                <a th:href="@{/citas}" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

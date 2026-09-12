@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Citas Médicas</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div class="topbar-icon">+</div>
+        <div>
+            <div class="brand-mark">Citas Médicas</div>
+            <div class="brand-sub">Sistema de Gestión Hospitalaria</div>
+        </div>
+    </div>
+</header>
+
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h1>Citas registradas</h1>
+            <p>Listado de todas las citas agendadas en el sistema.</p>
+        </div>
+        <a th:href="@{/citas/nueva}" class="btn btn-primary">+ Nueva cita</a>
+    </div>
+
+    <div class="table-wrap">
+        <table th:if="${not #lists.isEmpty(citas)}">
+            <thead>
+            <tr>
+                <th>Código</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Especialidad</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${citas}">
+                <td class="codigo" th:text="${c.codigoCita}"></td>
+                <td th:text="${c.paciente.nombreCompleto}"></td>
+                <td th:text="${c.medico.nombreCompleto}"></td>
+                <td th:text="${c.especialidad}"></td>
+                <td th:text="${c.fecha}"></td>
+                <td th:text="${c.horaInicio}"></td>
+                <td>
+                    <span class="badge" th:classappend="'badge-' + ${c.estado}" th:text="${c.estado}"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="empty-state" th:if="${#lists.isEmpty(citas)}">
+            Todavía no hay citas registradas. <a th:href="@{/citas/nueva}">Registra la primera</a>.
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
