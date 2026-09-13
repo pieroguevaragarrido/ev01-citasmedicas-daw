@@ -1,7 +1,9 @@
 package com.lab04.citas.controller;
 
 import com.lab04.citas.dto.CitaFormDTO;
+import com.lab04.citas.entity.CitaEstado;
 import com.lab04.citas.exception.DisponibilidadException;
+import com.lab04.citas.exception.TransicionEstadoInvalidaException;
 import com.lab04.citas.repository.MedicoRepository;
 import com.lab04.citas.repository.PacienteRepository;
 import com.lab04.citas.service.CitaService;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/citas")
@@ -30,6 +33,7 @@ public class CitaController {
     @GetMapping
     public String listar(Model model) {
         model.addAttribute("citas", citaService.listarTodas());
+        model.addAttribute("estados", CitaEstado.values()); // <- esta línea
         return "citas/lista";
     }
 
@@ -57,6 +61,18 @@ public class CitaController {
             model.addAttribute("pacientes", pacienteRepository.findAll());
             model.addAttribute("medicos", medicoRepository.findAll());
             return "citas/formulario";
+        }
+        return "redirect:/citas";
+    }
+    // ---------- RF-CIT-13: Cambiar estado ----------
+    @PostMapping("/{id}/estado")
+    public String cambiarEstado(@PathVariable Long id,
+                                @RequestParam CitaEstado nuevoEstado,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            citaService.cambiarEstado(id, nuevoEstado);
+        } catch (TransicionEstadoInvalidaException ex) {
+            redirectAttributes.addFlashAttribute("errorEstado", ex.getMessage());
         }
         return "redirect:/citas";
     }

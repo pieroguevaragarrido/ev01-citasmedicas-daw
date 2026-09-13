@@ -26,6 +26,8 @@
         <a th:href="@{/citas/nueva}" class="btn btn-primary">+ Nueva cita</a>
     </div>
 
+    <p class="alert alert-danger" th:if="${errorEstado}" th:text="${errorEstado}"></p>
+
     <div class="table-wrap">
         <table th:if="${not #lists.isEmpty(citas)}">
             <thead>
@@ -49,6 +51,17 @@
                 <td th:text="${c.horaInicio}"></td>
                 <td>
                     <span class="badge" th:classappend="'badge-' + ${c.estado}" th:text="${c.estado}"></span>
+                </td>
+                <td class="acciones">
+
+                    <!-- RF-CIT-13: cambiar estado (solo si el estado actual tiene transiciones posibles) -->
+                    <form th:action="@{'/citas/' + ${c.id} + '/estado'}" method="post" class="inline-form">
+                        <select name="nuevoEstado">
+                            <option th:each="e : ${estados}" th:value="${e}" th:text="${e}"></option>
+                        </select>
+                        <button type="submit" class="btn btn-ghost btn-sm">Cambiar</button>
+                    </form>
+
                 </td>
             </tr>
             </tbody>

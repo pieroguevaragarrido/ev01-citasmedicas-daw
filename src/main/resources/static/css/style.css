@@ -238,3 +238,27 @@ tbody tr:hover { background: #FAFCFB; }
   padding: 48px 20px;
   color: var(--ink-soft);
 }
+.acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 220px;
+}
+
+.inline-form {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.inline-form select,
+.inline-form input[type="text"] {
+    flex: 1;
+    padding: 4px 6px;
+    font-size: 0.85rem;
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+}

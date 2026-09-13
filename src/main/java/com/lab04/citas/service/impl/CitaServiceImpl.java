@@ -6,6 +6,7 @@ import com.lab04.citas.entity.CitaEstado;
 import com.lab04.citas.entity.Medico;
 import com.lab04.citas.entity.Paciente;
 import com.lab04.citas.exception.DisponibilidadException;
+import com.lab04.citas.exception.TransicionEstadoInvalidaException;
 import com.lab04.citas.repository.CitaRepository;
 import com.lab04.citas.repository.MedicoRepository;
 import com.lab04.citas.repository.PacienteRepository;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class CitaServiceImpl implements CitaService {
@@ -25,6 +28,29 @@ public class CitaServiceImpl implements CitaService {
 
     // Duración fija de la cita en minutos (simplificación)
     private static final int DURACION_MINUTOS = 30;
+
+    // RF-CIT-13: tabla de transiciones válidas de la máquina de estados.
+    // Cualquier transición que no esté aquí se rechaza.
+    private static final Map<CitaEstado, Set<CitaEstado>> TRANSICIONES = Map.of(
+            CitaEstado.PROGRAMADA, Set.of(CitaEstado.CONFIRMADA, CitaEstado.CANCELADA, CitaEstado.NO_ASISTIO),
+            CitaEstado.CONFIRMADA, Set.of(CitaEstado.EN_ESPERA, CitaEstado.CANCELADA, CitaEstado.NO_ASISTIO),
+            CitaEstado.EN_ESPERA, Set.of(CitaEstado.EN_ATENCION),
+            CitaEstado.EN_ATENCION, Set.of(CitaEstado.ATENDIDA)
+    );
+    // ---------- RF-CIT-13: Cambiar estado ----------
+    @Override
+    public void cambiarEstado(Long id, CitaEstado nuevoEstado) {
+        Cita cita = buscarPorId(id);
+        Set<CitaEstado> permitidos = TRANSICIONES.getOrDefault(cita.getEstado(), Set.of());
+        if (!permitidos.contains(nuevoEstado)) {
+            throw new TransicionEstadoInvalidaException(
+                    "No se puede pasar de " + cita.getEstado() + " a " + nuevoEstado
+            );
+        }
+        cita.setEstado(nuevoEstado);
+        cita.setFechaModificacion(LocalDateTime.now());
+        citaRepository.save(cita);
+    }
 
     public CitaServiceImpl(CitaRepository citaRepository,
                            PacienteRepository pacienteRepository,
