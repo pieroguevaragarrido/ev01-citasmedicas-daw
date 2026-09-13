@@ -46,13 +46,18 @@ public class Cita {
     @Column(name = "motivo_cancelacion", length = 255)
     private String motivoCancelacion;
 
+    @Column(name = "usuario_cancelacion", length = 80)
+    private String usuarioCancelacion;
+
+    @Column(name = "fecha_cancelacion")
+    private LocalDateTime fechaCancelacion;
+
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
 
     @Column(name = "fecha_modificacion")
     private LocalDateTime fechaModificacion;
 
-    // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getCodigoCita() { return codigoCita; }
@@ -75,6 +80,10 @@ public class Cita {
     public void setEstado(CitaEstado estado) { this.estado = estado; }
     public String getMotivoCancelacion() { return motivoCancelacion; }
     public void setMotivoCancelacion(String motivoCancelacion) { this.motivoCancelacion = motivoCancelacion; }
+    public String getUsuarioCancelacion() { return usuarioCancelacion; }
+    public void setUsuarioCancelacion(String usuarioCancelacion) { this.usuarioCancelacion = usuarioCancelacion; }
+    public LocalDateTime getFechaCancelacion() { return fechaCancelacion; }
+    public void setFechaCancelacion(LocalDateTime fechaCancelacion) { this.fechaCancelacion = fechaCancelacion; }
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
     public LocalDateTime getFechaModificacion() { return fechaModificacion; }
