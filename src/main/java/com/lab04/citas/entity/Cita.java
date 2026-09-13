@@ -46,7 +46,6 @@ public class Cita {
     @Column(name = "motivo_cancelacion", length = 255)
     private String motivoCancelacion;
 
-    // Agregado para RF-CIT-11 (cancelación con detalle completo)
     @Column(name = "usuario_cancelacion", length = 80)
     private String usuarioCancelacion;
 
@@ -59,7 +58,6 @@ public class Cita {
     @Column(name = "fecha_modificacion")
     private LocalDateTime fechaModificacion;
 
-    // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getCodigoCita() { return codigoCita; }

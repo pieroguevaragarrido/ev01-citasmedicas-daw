@@ -30,54 +30,100 @@
     <p class="alert alert-danger" th:if="${errorEstado}" th:text="${errorEstado}"></p>
     <p class="alert alert-danger" th:if="${errorCancelacion}" th:text="${errorCancelacion}"></p>
 
-    <div class="table-scroll">
-        <table th:if="${not #lists.isEmpty(citas)}">
-            <thead>
-            <tr>
-                <th>Código</th>
-                <th>Paciente</th>
-                <th>Médico</th>
-                <th>Especialidad</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Estado</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="c : ${citas}">
-                <td class="codigo" th:text="${c.codigoCita}"></td>
-                <td th:text="${c.paciente.nombreCompleto}"></td>
-                <td th:text="${c.medico.nombreCompleto}"></td>
-                <td th:text="${c.especialidad}"></td>
-                <td th:text="${c.fecha}"></td>
-                <td th:text="${c.horaInicio}"></td>
-                <td>
-                    <span class="badge" th:classappend="'badge-' + ${c.estado}" th:text="${c.estado}"></span>
-                </td>
-                <td class="acciones">
-                    <!-- RF-CIT-09 -->
-                    <a th:href="@{'/citas/' + ${c.id} + '/editar'}" class="btn btn-ghost btn-sm">Editar</a>
+    <!-- RF-CIT-17: filtros combinables, todos opcionales, se envían por GET -->
+    <div class="card">
+        <form th:action="@{/citas}" method="get" class="form-grid">
+            <div class="field">
+                <label>Paciente</label>
+                <select name="pacienteId">
+                    <option value="">Todos</option>
+                    <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="${p.nombreCompleto}"
+                            th:selected="${fPacienteId != null and fPacienteId == p.id}"></option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Médico</label>
+                <select name="medicoId">
+                    <option value="">Todos</option>
+                    <option th:each="m : ${medicos}" th:value="${m.id}" th:text="${m.nombreCompleto}"
+                            th:selected="${fMedicoId != null and fMedicoId == m.id}"></option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Especialidad</label>
+                <input type="text" name="especialidad" th:value="${fEspecialidad}" placeholder="Ej. Cardiología"/>
+            </div>
+            <div class="field">
+                <label>Fecha</label>
+                <input type="date" name="fecha" th:value="${fFecha}"/>
+            </div>
+            <div class="field">
+                <label>Estado</label>
+                <select name="estado">
+                    <option value="">Todos</option>
+                    <option th:each="e : ${estados}" th:value="${e}" th:text="${e}"
+                            th:selected="${fEstado != null and fEstado == e}"></option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <a th:href="@{/citas}" class="btn btn-ghost">Limpiar filtros</a>
+            </div>
+        </form>
+    </div>
 
-                    <!-- RF-CIT-13: cambiar estado (solo si el estado actual tiene transiciones posibles) -->
-                    <form th:action="@{'/citas/' + ${c.id} + '/estado'}" method="post" class="inline-form">
-                        <select name="nuevoEstado">
-                            <option th:each="e : ${estados}" th:value="${e}" th:text="${e}"></option>
-                        </select>
-                        <button type="submit" class="btn btn-ghost btn-sm">Cambiar</button>
-                    </form>
-                    <!-- RF-CIT-11: cancelar, exige motivo -->
-                    <form th:action="@{'/citas/' + ${c.id} + '/cancelar'}" method="post" class="inline-form"
-                          onsubmit="return confirm('¿Cancelar esta cita?');">
-                        <input type="text" name="motivo" placeholder="Motivo de cancelación" required/>
-                        <button type="submit" class="btn btn-ghost btn-sm">Cancelar</button>
-                    </form>
+    <div class="table-wrap">
+        <div class="table-scroll">
+            <table th:if="${not #lists.isEmpty(citas)}">
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Paciente</th>
+                    <th>Médico</th>
+                    <th>Especialidad</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${citas}">
+                    <td class="codigo" th:text="${c.codigoCita}"></td>
+                    <td th:text="${c.paciente.nombreCompleto}"></td>
+                    <td th:text="${c.medico.nombreCompleto}"></td>
+                    <td th:text="${c.especialidad}"></td>
+                    <td th:text="${c.fecha}"></td>
+                    <td th:text="${c.horaInicio}"></td>
+                    <td>
+                        <span class="badge" th:classappend="'badge-' + ${c.estado}" th:text="${c.estado}"></span>
+                    </td>
+                    <td class="acciones">
+                        <!-- RF-CIT-09 -->
+                        <a th:href="@{'/citas/' + ${c.id} + '/editar'}" class="btn btn-ghost btn-sm">Editar</a>
 
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                        <!-- RF-CIT-13: cambiar estado. No incluye CANCELADA a propósito:
+                             cancelar solo se hace por el botón dedicado, que exige motivo. -->
+                        <form th:action="@{'/citas/' + ${c.id} + '/estado'}" method="post" class="inline-form">
+                            <select name="nuevoEstado">
+                                <option th:each="e : ${estadosCambio}" th:value="${e}" th:text="${e}"></option>
+                            </select>
+                            <button type="submit" class="btn btn-ghost btn-sm">Cambiar</button>
+                        </form>
+
+                        <!-- RF-CIT-11: cancelar, exige motivo -->
+                        <form th:action="@{'/citas/' + ${c.id} + '/cancelar'}" method="post" class="inline-form"
+                              onsubmit="return confirm('¿Cancelar esta cita?');">
+                            <input type="text" name="motivo" placeholder="Motivo de cancelación" required/>
+                            <button type="submit" class="btn btn-ghost btn-sm">Cancelar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
         <div class="empty-state" th:if="${#lists.isEmpty(citas)}">
-            Todavía no hay citas registradas. <a th:href="@{/citas/nueva}">Registra la primera</a>.
+            No se encontraron citas con los filtros aplicados. <a th:href="@{/citas/nueva}">Registra una nueva</a>.
         </div>
     </div>
 </div>

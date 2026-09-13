@@ -34,6 +34,9 @@
              Si citaId existe, se envía a /citas/{id} (actualizar); si no, a /citas (registrar). -->
         <form th:action="${citaId} != null ? @{'/citas/' + ${citaId}} : @{/citas}"
               th:object="${citaForm}" method="post" class="form-grid">
+
+            <!-- Errores de validación de campo (@NotNull, @FutureOrPresent, etc.).
+                 Va DENTRO del form porque #fields necesita el contexto de th:object. -->
             <div class="alert alert-danger field-full" th:if="${#fields.hasErrors('*')}">
                 <p th:each="err : ${#fields.errors('*')}" th:text="${err}"></p>
             </div>

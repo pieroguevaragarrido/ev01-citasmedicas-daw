@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 
 @Controller
@@ -33,12 +34,32 @@ public class CitaController {
         this.medicoRepository = medicoRepository;
     }
 
+    // RF-CIT-17: listado acepta filtros opcionales combinables
     @GetMapping
-    public String listar(Model model) {
-        model.addAttribute("citas", citaService.listarTodas());
-        model.addAttribute("estados", Arrays.stream(CitaEstado.values())
+    public String listar(@RequestParam(required = false) Long pacienteId,
+                         @RequestParam(required = false) Long medicoId,
+                         @RequestParam(required = false) String especialidad,
+                         @RequestParam(required = false) LocalDate fecha,
+                         @RequestParam(required = false) CitaEstado estado,
+                         Model model) {
+
+        if (especialidad != null && especialidad.isBlank()) {
+            especialidad = null;
+        }
+
+        model.addAttribute("citas",
+                citaService.buscarConFiltros(pacienteId, medicoId, especialidad, fecha, estado));
+        model.addAttribute("pacientes", pacienteRepository.findAll());
+        model.addAttribute("medicos", medicoRepository.findAll());
+        model.addAttribute("estados", CitaEstado.values());
+        model.addAttribute("estadosCambio", Arrays.stream(CitaEstado.values())
                 .filter(e -> e != CitaEstado.CANCELADA)
                 .toArray());
+        model.addAttribute("fPacienteId", pacienteId);
+        model.addAttribute("fMedicoId", medicoId);
+        model.addAttribute("fEspecialidad", especialidad);
+        model.addAttribute("fFecha", fecha);
+        model.addAttribute("fEstado", estado);
         return "citas/lista";
     }
 
@@ -69,6 +90,7 @@ public class CitaController {
         }
         return "redirect:/citas";
     }
+
     // ---------- RF-CIT-09: Modificar cita ----------
     @GetMapping("/{id}/editar")
     public String formularioEditar(@PathVariable Long id, Model model) {
@@ -109,6 +131,20 @@ public class CitaController {
         }
         return "redirect:/citas";
     }
+
+    // ---------- RF-CIT-13: Cambiar estado ----------
+    @PostMapping("/{id}/estado")
+    public String cambiarEstado(@PathVariable Long id,
+                                @RequestParam CitaEstado nuevoEstado,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            citaService.cambiarEstado(id, nuevoEstado);
+        } catch (TransicionEstadoInvalidaException ex) {
+            redirectAttributes.addFlashAttribute("errorEstado", ex.getMessage());
+        }
+        return "redirect:/citas";
+    }
+
     // ---------- RF-CIT-11: Cancelar cita ----------
     @PostMapping("/{id}/cancelar")
     public String cancelar(@PathVariable Long id,
@@ -119,18 +155,6 @@ public class CitaController {
             citaService.cancelarCita(id, motivo, usuario);
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("errorCancelacion", ex.getMessage());
-        }
-        return "redirect:/citas";
-    }
-    // ---------- RF-CIT-13: Cambiar estado ----------
-    @PostMapping("/{id}/estado")
-    public String cambiarEstado(@PathVariable Long id,
-                                @RequestParam CitaEstado nuevoEstado,
-                                RedirectAttributes redirectAttributes) {
-        try {
-            citaService.cambiarEstado(id, nuevoEstado);
-        } catch (TransicionEstadoInvalidaException ex) {
-            redirectAttributes.addFlashAttribute("errorEstado", ex.getMessage());
         }
         return "redirect:/citas";
     }
