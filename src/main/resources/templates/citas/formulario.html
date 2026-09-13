@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Registrar Cita — Citas Médicas</title>
+    <title th:text="${citaId} != null ? 'Editar Cita — Citas Médicas' : 'Registrar Cita — Citas Médicas'">Registrar Cita</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
@@ -22,15 +22,21 @@
 <div class="page">
     <div class="page-header">
         <div>
-            <h1>Registrar cita</h1>
-            <p>Completa los datos para agendar una nueva cita médica.</p>
+            <h1 th:text="${citaId} != null ? 'Editar cita' : 'Registrar cita'">Registrar cita</h1>
+            <p th:text="${citaId} != null ? 'Modifica los datos de la cita seleccionada.' : 'Completa los datos para agendar una nueva cita médica.'"></p>
         </div>
     </div>
 
     <div class="card">
         <p class="alert alert-danger" th:if="${errorDisponibilidad}" th:text="${errorDisponibilidad}"></p>
 
-        <form th:action="@{/citas}" th:object="${citaForm}" method="post" class="form-grid">
+        <!-- RF-CIT-09: mismo formulario para crear y editar.
+             Si citaId existe, se envía a /citas/{id} (actualizar); si no, a /citas (registrar). -->
+        <form th:action="${citaId} != null ? @{'/citas/' + ${citaId}} : @{/citas}"
+              th:object="${citaForm}" method="post" class="form-grid">
+            <div class="alert alert-danger field-full" th:if="${#fields.hasErrors('*')}">
+                <p th:each="err : ${#fields.errors('*')}" th:text="${err}"></p>
+            </div>
 
             <div class="field">
                 <label>Paciente</label>
@@ -69,7 +75,8 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Guardar cita</button>
+                <button type="submit" class="btn btn-primary"
+                        th:text="${citaId} != null ? 'Guardar cambios' : 'Guardar cita'">Guardar cita</button>
                 <a th:href="@{/citas}" class="btn btn-ghost">Cancelar</a>
             </div>
         </form>

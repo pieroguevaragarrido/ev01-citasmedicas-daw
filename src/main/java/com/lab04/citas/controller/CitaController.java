@@ -1,6 +1,7 @@
 package com.lab04.citas.controller;
 
 import com.lab04.citas.dto.CitaFormDTO;
+import com.lab04.citas.entity.Cita;
 import com.lab04.citas.entity.CitaEstado;
 import com.lab04.citas.exception.DisponibilidadException;
 import com.lab04.citas.exception.TransicionEstadoInvalidaException;
@@ -62,6 +63,46 @@ public class CitaController {
             citaService.registrarCita(citaForm);
         } catch (DisponibilidadException ex) {
             model.addAttribute("errorDisponibilidad", ex.getMessage());
+            model.addAttribute("pacientes", pacienteRepository.findAll());
+            model.addAttribute("medicos", medicoRepository.findAll());
+            return "citas/formulario";
+        }
+        return "redirect:/citas";
+    }
+    // ---------- RF-CIT-09: Modificar cita ----------
+    @GetMapping("/{id}/editar")
+    public String formularioEditar(@PathVariable Long id, Model model) {
+        Cita cita = citaService.buscarPorId(id);
+        CitaFormDTO dto = new CitaFormDTO();
+        dto.setPacienteId(cita.getPaciente().getId());
+        dto.setMedicoId(cita.getMedico().getId());
+        dto.setEspecialidad(cita.getEspecialidad());
+        dto.setConsultorio(cita.getConsultorio());
+        dto.setFecha(cita.getFecha());
+        dto.setHoraInicio(cita.getHoraInicio());
+        model.addAttribute("citaForm", dto);
+        model.addAttribute("citaId", id);
+        model.addAttribute("pacientes", pacienteRepository.findAll());
+        model.addAttribute("medicos", medicoRepository.findAll());
+        return "citas/formulario";
+    }
+
+    @PostMapping("/{id}")
+    public String actualizar(@PathVariable Long id,
+                             @Valid @ModelAttribute("citaForm") CitaFormDTO citaForm,
+                             BindingResult result,
+                             Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("citaId", id);
+            model.addAttribute("pacientes", pacienteRepository.findAll());
+            model.addAttribute("medicos", medicoRepository.findAll());
+            return "citas/formulario";
+        }
+        try {
+            citaService.modificarCita(id, citaForm);
+        } catch (DisponibilidadException ex) {
+            model.addAttribute("errorDisponibilidad", ex.getMessage());
+            model.addAttribute("citaId", id);
             model.addAttribute("pacientes", pacienteRepository.findAll());
             model.addAttribute("medicos", medicoRepository.findAll());
             return "citas/formulario";

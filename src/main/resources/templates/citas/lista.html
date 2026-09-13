@@ -55,6 +55,8 @@
                     <span class="badge" th:classappend="'badge-' + ${c.estado}" th:text="${c.estado}"></span>
                 </td>
                 <td class="acciones">
+                    <!-- RF-CIT-09 -->
+                    <a th:href="@{'/citas/' + ${c.id} + '/editar'}" class="btn btn-ghost btn-sm">Editar</a>
 
                     <!-- RF-CIT-13: cambiar estado (solo si el estado actual tiene transiciones posibles) -->
                     <form th:action="@{'/citas/' + ${c.id} + '/estado'}" method="post" class="inline-form">

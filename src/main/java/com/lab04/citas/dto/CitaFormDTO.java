@@ -3,6 +3,7 @@ package com.lab04.citas.dto;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -22,12 +23,13 @@ public class CitaFormDTO {
 
     @NotNull(message = "La fecha es obligatoria")
     @FutureOrPresent(message = "La fecha no puede ser en el pasado")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate fecha;
 
     @NotNull(message = "La hora de inicio es obligatoria")
+    @DateTimeFormat(pattern = "HH:mm")
     private LocalTime horaInicio;
 
-    // Getters y setters
     public Long getPacienteId() { return pacienteId; }
     public void setPacienteId(Long pacienteId) { this.pacienteId = pacienteId; }
     public Long getMedicoId() { return medicoId; }

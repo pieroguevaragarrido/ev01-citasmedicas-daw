@@ -40,11 +40,6 @@ public class CitaServiceImpl implements CitaService {
     // ---------- RF-CIT-13: Cambiar estado ----------
     @Override
     public void cambiarEstado(Long id, CitaEstado nuevoEstado) {
-        if (nuevoEstado == CitaEstado.CANCELADA) {
-            throw new TransicionEstadoInvalidaException(
-                    "Para cancelar una cita usa la opción 'Cancelar' (exige motivo), no el cambio de estado directo."
-            );
-        }
         Cita cita = buscarPorId(id);
         Set<CitaEstado> permitidos = TRANSICIONES.getOrDefault(cita.getEstado(), Set.of());
         if (!permitidos.contains(nuevoEstado)) {
@@ -74,6 +69,49 @@ public class CitaServiceImpl implements CitaService {
         cita.setFechaCancelacion(LocalDateTime.now());
         cita.setFechaModificacion(LocalDateTime.now());
         citaRepository.save(cita);
+    }
+    // ---------- RF-CIT-09: Modificar cita ----------
+    @Override
+    public Cita modificarCita(Long id, CitaFormDTO dto) {
+        Cita cita = buscarPorId(id);
+        Medico medico = medicoRepository.findById(dto.getMedicoId())
+                .orElseThrow(() -> new IllegalArgumentException("Médico no encontrado"));
+        Paciente paciente = pacienteRepository.findById(dto.getPacienteId())
+                .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado"));
+
+        LocalTime horaFin = dto.getHoraInicio().plusMinutes(DURACION_MINUTOS);
+
+        // Disponibilidad del MÉDICO, excluyendo la propia cita que se edita
+        List<Cita> conflictosMedico = citaRepository.buscarConflictos(
+                medico.getId(), dto.getFecha(), dto.getHoraInicio(), horaFin,
+                List.of(CitaEstado.CANCELADA, CitaEstado.NO_ASISTIO));
+        conflictosMedico.removeIf(c -> c.getId().equals(cita.getId()));
+        if (!conflictosMedico.isEmpty()) {
+            throw new DisponibilidadException(
+                    "El médico ya tiene una cita programada en ese horario. Elige otro horario."
+            );
+        }
+
+        // Disponibilidad del PACIENTE, excluyendo también la propia cita
+        List<Cita> conflictosPaciente = citaRepository.buscarConflictosPaciente(
+                paciente.getId(), dto.getFecha(), dto.getHoraInicio(), horaFin,
+                List.of(CitaEstado.CANCELADA, CitaEstado.NO_ASISTIO));
+        conflictosPaciente.removeIf(c -> c.getId().equals(cita.getId()));
+        if (!conflictosPaciente.isEmpty()) {
+            throw new DisponibilidadException(
+                    "El paciente ya tiene otra cita programada en ese horario. Elige otro horario."
+            );
+        }
+
+        cita.setPaciente(paciente);
+        cita.setMedico(medico);
+        cita.setEspecialidad(dto.getEspecialidad());
+        cita.setConsultorio(dto.getConsultorio());
+        cita.setFecha(dto.getFecha());
+        cita.setHoraInicio(dto.getHoraInicio());
+        cita.setHoraFin(horaFin);
+        cita.setFechaModificacion(LocalDateTime.now());
+        return citaRepository.save(cita);
     }
 
     public CitaServiceImpl(CitaRepository citaRepository,
