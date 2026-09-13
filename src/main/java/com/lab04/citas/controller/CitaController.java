@@ -14,6 +14,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
+
 @Controller
 @RequestMapping("/citas")
 public class CitaController {
@@ -33,7 +35,9 @@ public class CitaController {
     @GetMapping
     public String listar(Model model) {
         model.addAttribute("citas", citaService.listarTodas());
-        model.addAttribute("estados", CitaEstado.values()); // <- esta línea
+        model.addAttribute("estados", Arrays.stream(CitaEstado.values())
+                .filter(e -> e != CitaEstado.CANCELADA)
+                .toArray());
         return "citas/lista";
     }
 
@@ -61,6 +65,19 @@ public class CitaController {
             model.addAttribute("pacientes", pacienteRepository.findAll());
             model.addAttribute("medicos", medicoRepository.findAll());
             return "citas/formulario";
+        }
+        return "redirect:/citas";
+    }
+    // ---------- RF-CIT-11: Cancelar cita ----------
+    @PostMapping("/{id}/cancelar")
+    public String cancelar(@PathVariable Long id,
+                           @RequestParam String motivo,
+                           @RequestParam(required = false, defaultValue = "sistema") String usuario,
+                           RedirectAttributes redirectAttributes) {
+        try {
+            citaService.cancelarCita(id, motivo, usuario);
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("errorCancelacion", ex.getMessage());
         }
         return "redirect:/citas";
     }

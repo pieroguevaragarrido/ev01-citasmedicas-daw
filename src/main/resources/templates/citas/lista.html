@@ -4,6 +4,7 @@
     <meta charset="UTF-8"/>
     <title>Citas Médicas</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
 <body>
 
@@ -27,8 +28,9 @@
     </div>
 
     <p class="alert alert-danger" th:if="${errorEstado}" th:text="${errorEstado}"></p>
+    <p class="alert alert-danger" th:if="${errorCancelacion}" th:text="${errorCancelacion}"></p>
 
-    <div class="table-wrap">
+    <div class="table-scroll">
         <table th:if="${not #lists.isEmpty(citas)}">
             <thead>
             <tr>
@@ -60,6 +62,12 @@
                             <option th:each="e : ${estados}" th:value="${e}" th:text="${e}"></option>
                         </select>
                         <button type="submit" class="btn btn-ghost btn-sm">Cambiar</button>
+                    </form>
+                    <!-- RF-CIT-11: cancelar, exige motivo -->
+                    <form th:action="@{'/citas/' + ${c.id} + '/cancelar'}" method="post" class="inline-form"
+                          onsubmit="return confirm('¿Cancelar esta cita?');">
+                        <input type="text" name="motivo" placeholder="Motivo de cancelación" required/>
+                        <button type="submit" class="btn btn-ghost btn-sm">Cancelar</button>
                     </form>
 
                 </td>

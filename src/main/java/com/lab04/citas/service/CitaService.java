@@ -8,5 +8,6 @@ public interface CitaService {
     Cita buscarPorId(Long id);
     Iterable<Cita> listarTodas();
 
+    void cancelarCita(Long id, String motivo, String usuario);         // RF-CIT-11
     void cambiarEstado(Long id, CitaEstado nuevoEstado);                // RF-CIT-13
 }

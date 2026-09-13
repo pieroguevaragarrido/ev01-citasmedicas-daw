@@ -40,6 +40,11 @@ public class CitaServiceImpl implements CitaService {
     // ---------- RF-CIT-13: Cambiar estado ----------
     @Override
     public void cambiarEstado(Long id, CitaEstado nuevoEstado) {
+        if (nuevoEstado == CitaEstado.CANCELADA) {
+            throw new TransicionEstadoInvalidaException(
+                    "Para cancelar una cita usa la opción 'Cancelar' (exige motivo), no el cambio de estado directo."
+            );
+        }
         Cita cita = buscarPorId(id);
         Set<CitaEstado> permitidos = TRANSICIONES.getOrDefault(cita.getEstado(), Set.of());
         if (!permitidos.contains(nuevoEstado)) {
@@ -48,6 +53,25 @@ public class CitaServiceImpl implements CitaService {
             );
         }
         cita.setEstado(nuevoEstado);
+        cita.setFechaModificacion(LocalDateTime.now());
+        citaRepository.save(cita);
+    }
+    // ---------- RF-CIT-11: Cancelar cita ----------
+    @Override
+    public void cancelarCita(Long id, String motivo, String usuario) {
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException("El motivo de cancelación es obligatorio");
+        }
+        Cita cita = buscarPorId(id);
+        if (cita.getEstado() != CitaEstado.PROGRAMADA && cita.getEstado() != CitaEstado.CONFIRMADA) {
+            throw new TransicionEstadoInvalidaException(
+                    "Solo se puede cancelar una cita en estado PROGRAMADA o CONFIRMADA"
+            );
+        }
+        cita.setEstado(CitaEstado.CANCELADA);
+        cita.setMotivoCancelacion(motivo);
+        cita.setUsuarioCancelacion(usuario);
+        cita.setFechaCancelacion(LocalDateTime.now());
         cita.setFechaModificacion(LocalDateTime.now());
         citaRepository.save(cita);
     }
